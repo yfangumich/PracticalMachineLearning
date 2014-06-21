@@ -1,0 +1,95 @@
+Course Project
+========================================================
+
+**Weight Lifting Classe Prediction**
+
+*Yu Fang, 06/2014*
+
+- Initialization
+
+```{r}
+library(caret)
+```
+
+- Read data from csv files
+
+```{r}
+training=data.frame(read.csv(file="/Volumes/WATERMELON/Study/practicalMachinLearning/pml-training.csv",head=TRUE,sep=","))
+testing=data.frame(read.csv(file="/Volumes/WATERMELON/Study/practicalMachinLearning/pml-testing.csv",head=TRUE,sep=","))
+```
+
+- Data cleaning and preprocessing
+
+```{r}
+#Exclude the columns containing blank or NA, this step leaves 60 columns of each data set.
+training[training==""]=NA
+training=training[,colSums(is.na(training))==0]
+testing[testing==""]=NA
+testing=testing[,colSums(is.na(testing))==0]
+```
+
+```{r}
+#Use "nearZeroVar" function to detect zero covariates. 
+nsv=nearZeroVar(useTrain,saveMetrics=TRUE)
+```
+
+```{r}
+#For variable "new_window", nzv=TRUE. In training set, "new_window" has 19216 "no" and 406 "yes"; in testing set, "new_window" are all "no". So remove samples with new_window=="yes" in training set.
+useTrain=training[ which(training$new_window=="no"),]
+```
+
+```{r}
+#Exclude some other variables that obviously not relevant to class prediction:"X","cvtd_timestamp","raw_timestamp_part_1","raw_timestamp_part_2", and also from last section, "new_window"
+excludeVars=names(useTrain) %in% c("X","cvtd_timestamp","raw_timestamp_part_1","raw_timestamp_part_2","new_window")
+useTrain=useTrain[!excludeVars]
+useTest=testing[!excludeVars]
+```
+
+```{r}
+#Considering there might be variance between subjects, dummy code the "user_name"
+dummies1=dummyVars(classe ~ user_name,data=useTrain)
+dummycols1=predict(dummies1,newdata=useTrain)
+useTrain=cbind(dummycols1,useTrain)
+
+dummies2=dummyVars(problem_id ~ user_name,data=useTest)
+dummycols2=predict(dummies2,newdata=useTest)
+useTest=cbind(dummycols2,useTest)
+
+excludeVar=names(useTrain) %in% c("user_name")
+useTrain=useTrain[!excludeVar]
+useTest=useTest[!excludeVar]
+```
+
+```{r}
+#Standardize the data, and use PCA to further pick the principle components explaining 95% of the variance in the predictors. 
+preProc=preProcess(useTrain[,-60],method=c("center","scale","pca"),thresh=0.95)
+trainPC=predict(preProc,useTrain[,-60])
+# It results in 25 principle components.
+preProc
+```
+
+- Fit the model, and do prediction. 
+
+```{r}
+#Make 10-fold cross validation
+tc=trainControl("cv",10,savePred=T)
+```
+
+```{r}
+#As far as I understand, this case is to determine the quality of weight lifting by various measured parameters. So it is likely to be a tree-like selection rather than a linear regression model. Also higher accuracy is desired. Therefore random forest model is selected.
+rfModelFit=train(useTrain$classe ~ .,method="rf",data=trainPC,trControl=tc)
+```
+
+```{r}
+#The fit model results summary
+rfModelFit
+```
+
+- Predict the testing data
+
+```{r}
+testPC=predict(preProc,useTest[,-60])
+pred=predict(rfModelFit,testPC)
+# The predict results on testing data
+pred
+```
