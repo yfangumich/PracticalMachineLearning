@@ -1,98 +1,181 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=640" />
-
-    <link rel="stylesheet" href="stylesheets/core.css" media="screen"/>
-    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)"/>
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
-
-    <script type="text/javascript" src="javascripts/modernizr.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
-    <script type="text/javascript">
-      $(document).ready(function () {
-        $('#main_content').headsmart()
-      })
-    </script>
     <title>Practicalmachinelearning by yfangumich</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
   </head>
-
   <body>
-    <a id="forkme_banner" href="https://github.com/yfangumich/PracticalMachineLearning">View on GitHub</a>
-    <div class="shell">
-
+    <div class="wrapper">
       <header>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <h1>Practicalmachinelearning</h1>
-            <h2>Project</h2>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
+        <h1>Practicalmachinelearning</h1>
+        <p>Project</p>
+
+        <p class="view"><a href="https://github.com/yfangumich/PracticalMachineLearning">View the Project on GitHub <small>yfangumich/PracticalMachineLearning</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/yfangumich/PracticalMachineLearning/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/yfangumich/PracticalMachineLearning/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/yfangumich/PracticalMachineLearning">View On <strong>GitHub</strong></a></li>
+        </ul>
       </header>
-
-      <section id="downloads">
-        <span class="inner">
-          <a href="https://github.com/yfangumich/PracticalMachineLearning/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/yfangumich/PracticalMachineLearning/tarball/master" class="tgz"><em>download</em> .TGZ</a>
-        </span>
-      </section>
+      <section>
+        
 
 
-      <span class="banner-fix"></span>
 
+<p></p>
 
-      <section id="main_content">
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+<p></p>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<h1>
+<a name="course-project" class="anchor" href="#course-project"><span class="octicon octicon-link"></span></a>Course Project</h1>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<p><strong>Weight Lifting Classe Prediction</strong></p>
+
+<p><em>Yu Fang, 06/2014</em></p>
+
+<ul>
+<li>Initialization</li>
+</ul><pre><code>library(caret)
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2
+</code></pre>
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<ul>
+<li>Read data from csv files</li>
+</ul><pre><code>training=data.frame(read.csv(file="/Volumes/WATERMELON/Study/practicalMachinLearning/pml-training.csv",head=TRUE,sep=","))
+testing=data.frame(read.csv(file="/Volumes/WATERMELON/Study/practicalMachinLearning/pml-testing.csv",head=TRUE,sep=","))
+</code></pre>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<ul>
+<li>Data cleaning and preprocessing</li>
+</ul><pre><code>#Exclude the columns containing blank or NA, this step leaves 60 columns of each data set.
+training[training==""]=NA
+training=training[,colSums(is.na(training))==0]
+testing[testing==""]=NA
+testing=testing[,colSums(is.na(testing))==0]
+</code></pre>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<pre><code>#Use "nearZeroVar" function to detect zero covariates. 
+nsv=nearZeroVar(training,saveMetrics=TRUE)
+</code></pre>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<pre><code>#For variable "new_window", nzv=TRUE. In training set, "new_window" has 19216 "no" and 406 "yes"; in testing set, "new_window" are all "no". So remove samples with new_window=="yes" in training set.
+useTrain=training[ which(training$new_window=="no"),]
+</code></pre>
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<pre><code>#Exclude some other variables that obviously not relevant to class prediction:"X","cvtd_timestamp","raw_timestamp_part_1","raw_timestamp_part_2", and also from last section, "new_window"
+excludeVars=names(useTrain) %in% c("X","cvtd_timestamp","raw_timestamp_part_1","raw_timestamp_part_2","new_window")
+useTrain=useTrain[!excludeVars]
+useTest=testing[!excludeVars]
+</code></pre>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<pre><code>#Considering there might be variance between subjects, dummy code the "user_name"
+dummies1=dummyVars(classe ~ user_name,data=useTrain)
+dummycols1=predict(dummies1,newdata=useTrain)
+useTrain=cbind(dummycols1,useTrain)
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+dummies2=dummyVars(problem_id ~ user_name,data=useTest)
+dummycols2=predict(dummies2,newdata=useTest)
+useTest=cbind(dummycols2,useTest)
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+excludeVar=names(useTrain) %in% c("user_name")
+useTrain=useTrain[!excludeVar]
+useTest=useTest[!excludeVar]
+</code></pre>
+
+<pre><code>#Standardize the data, and use PCA to further pick the principle components explaining 95% of the variance in the predictors. 
+preProc=preProcess(useTrain[,-60],method=c("center","scale","pca"),thresh=0.95)
+trainPC=predict(preProc,useTrain[,-60])
+# It results in 25 principle components.
+preProc
+</code></pre>
+
+<pre><code>## 
+## Call:
+## preProcess.default(x = useTrain[, -60], method = c("center",
+##  "scale", "pca"), thresh = 0.95)
+## 
+## Created from 19216 samples and 59 variables
+## Pre-processing: centered, scaled, principal component signal extraction 
+## 
+## PCA needed 25 components to capture 95 percent of the variance
+</code></pre>
+
+<ul>
+<li>Fit the model, and do prediction. </li>
+</ul><pre><code>#Make 10-fold cross validation
+tc=trainControl("cv",10,savePred=T)
+</code></pre>
+
+<pre><code>#As far as I understand, this case is to determine the quality of weight lifting by various measured parameters. So it is likely to be a tree-like selection rather than a linear regression model. Also higher accuracy is desired. Therefore random forest model is selected.
+rfModelFit=train(useTrain$classe ~ .,method="rf",data=trainPC,trControl=tc)
+</code></pre>
+
+<pre><code>## Loading required package: randomForest
+## randomForest 4.6-7
+## Type rfNews() to see new features/changes/bug fixes.
+</code></pre>
+
+<pre><code>#The fit model results summary
+rfModelFit
+</code></pre>
+
+<pre><code>## Random Forest 
+## 
+## 19216 samples
+##    24 predictors
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## 
+## Summary of sample sizes: 17296, 17293, 17295, 17296, 17293, 17294, ... 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
+##   2     1         1      0.002        0.002   
+##   10    1         1      0.003        0.003   
+##   20    1         1      0.004        0.005   
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 2.
+</code></pre>
+
+<ul>
+<li>Predict the testing data</li>
+</ul><pre><code>testPC=predict(preProc,useTest[,-60])
+pred=predict(rfModelFit,testPC)
+# The predict results on testing data
+pred
+</code></pre>
+
+<pre><code>##  [1] B A C A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+</code></pre>
+
+<p></p>
+
+<p></p>
       </section>
-
       <footer>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <p>this project by <a href="https://github.com/yfangumich">yfangumich</a> can be found on <a href="https://github.com/yfangumich/PracticalMachineLearning">GitHub</a></p>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
-        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
-        <span class="octocat"></span>
+        <p>This project is maintained by <a href="https://github.com/yfangumich">yfangumich</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
-
     </div>
-
+    <script src="javascripts/scale.fix.js"></script>
     
   </body>
 </html>
